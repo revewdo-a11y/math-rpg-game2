@@ -1,0 +1,461 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Math RNG RPG 1.4</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#344879,#171e3c 48%,#0c1124);color:#f5f7ff;font-family:system-ui,"Noto Sans KR",sans-serif}.wrap{max-width:1000px;margin:auto;padding:16px}.top,.row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.brand{font-size:clamp(24px,5vw,38px);font-weight:1000;color:#ffd166}.pill,.tag{background:#202b4d;border:1px solid #52658f;border-radius:99px;padding:7px 12px}.layout{display:grid;grid-template-columns:180px 1fr;gap:14px;margin-top:16px}.side,.panel{background:linear-gradient(145deg,#26345c,#18213f);border:1px solid #465781;border-radius:18px;padding:16px;box-shadow:0 10px 25px #0004}.side{display:flex;flex-direction:column;gap:10px}.side h3,.gold{color:#ffd166}button{border:0;border-radius:11px;padding:12px 14px;background:#ffd166;color:#24213b;font-weight:850;font-size:15px;cursor:pointer;box-shadow:0 4px 0 #bd8e36}button.secondary{background:#53658f;color:white;box-shadow:0 4px 0 #354366}button.green{background:#74e0bd;box-shadow:0 4px 0 #399b7b}button:disabled{opacity:.5}.main{min-height:520px}.hero{text-align:center;padding:24px 10px}.art,.emoji{font-size:76px}.sub,.small{color:#b8c2e2;line-height:1.6}.small{font-size:13px}.actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:18px 0}.hidden{display:none!important}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.card,.upgrade{background:#111a35;border:1px solid #43547e;border-radius:14px;padding:14px}.card h3{margin:7px 0}.card button,.upgrade button{width:100%;margin-top:10px}.selected{border:2px solid #ffd166}.notice{padding:12px;border-radius:12px;background:#111a35;color:#74e0bd;margin:12px 0;min-height:42px}.bar{height:13px;background:#0c132a;border-radius:20px;overflow:hidden;margin:8px 0}.bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,#62d9b0,#c3f47b);transition:width .2s}.xpbox{background:#111a35;padding:12px;border-radius:13px;margin:10px 0}.xptext{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-weight:800}.battle{text-align:center}.monster{font-size:78px}.question{text-align:center;font-size:22px;font-weight:900;margin:18px 0}.answers{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.answers button{background:#53658f;color:white;box-shadow:0 4px 0 #354366}.footer{text-align:center;color:#8f9cbe;font-size:12px;margin:16px}
+button{min-height:46px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.monster-stage{position:relative;display:grid;place-items:center;min-height:116px;margin:8px auto}
+.monster{font-size:clamp(64px,12vw,88px);line-height:1.2;filter:drop-shadow(0 8px 8px #0005)}.monster.hit{animation:monsterHit .28s ease-out}@keyframes monsterHit{0%{transform:translateX(0) scale(1);filter:brightness(1)}25%{transform:translateX(-7px) scale(1.08);filter:brightness(2)}55%{transform:translateX(6px) scale(.96);filter:brightness(1.5)}100%{transform:translateX(0) scale(1);filter:brightness(1)}}
+.fx{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(30px,7vw,54px);pointer-events:none;opacity:0;z-index:2}
+.fx.play{animation:impact .58s ease-out}
+.fx.ultimate.play{animation:ultimateFlash .9s ease-out}
+@keyframes impact{0%{opacity:0;transform:scale(.35) rotate(-12deg)}25%{opacity:1;transform:scale(1.25) rotate(8deg)}65%{opacity:.9;transform:scale(1) rotate(-4deg)}100%{opacity:0;transform:scale(1.45)}}
+@keyframes ultimateFlash{0%{opacity:0;transform:scale(.2)}18%{opacity:1;transform:scale(1.5)}55%{opacity:1;transform:scale(1.15)}100%{opacity:0;transform:scale(2.1)}}
+.combo{color:#ffd166;font-weight:900;margin:4px}
+@media(max-width:800px){
+ .wrap{padding:10px}.layout{grid-template-columns:1fr;gap:10px}
+ .side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px}
+ .side h3{grid-column:1/-1;margin:2px}.side .small{grid-column:1/-1;margin:2px}
+ .main{min-height:0;padding:12px}.hero{padding:16px 6px}
+ .answers{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .answers button{min-height:54px;font-size:clamp(14px,2.2vw,17px);overflow-wrap:anywhere}
+}
+@media(max-width:420px){.answers{grid-template-columns:1fr}.brand{font-size:23px}.side button{padding:10px 6px;font-size:14px}}
+@media(max-width:650px){.layout{grid-template-columns:1fr}.side{display:grid;grid-template-columns:repeat(2,1fr)}.side h3{grid-column:1/-1}.answers{grid-template-columns:1fr 1fr}}
+.ultimate-active{font-weight:900;color:#ffe08a;background:rgba(255,190,60,.16);border:1px solid #ffd166;border-radius:10px;padding:8px}
+.pet-tier{display:inline-block;padding:4px 9px;border-radius:8px;font-weight:900;background:#26345c;border:1px solid #6578a8}.pet-hp{font-weight:850;color:#74e0bd}.side button.active-menu{background:#ffd166;color:#24213b;box-shadow:0 4px 0 #bd8e36;border:2px solid #ffe39a;transform:translateY(-1px)}
+.side button.active-menu:disabled{opacity:1}
+.side button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.music-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}.music-controls button{min-height:38px;padding:8px 11px;font-size:13px}.music-controls input{width:90px;accent-color:#ffd166}.music-label{font-size:12px;color:#cbd5f1}
+</style></head><body><div class="wrap">
+<header class="top"><div class="brand">⚔️ MATH RNG RPG</div><div class="row"><span class="pill">🪙 <b id="coins">0</b></span> <span class="pill">직업 <b id="jobCount">1</b></span><div class="music-controls"><button id="musicToggle" class="secondary" onclick="toggleMusic()">🎵 음악 켜기</button><label class="music-label" for="musicVolume">음량</label><input id="musicVolume" type="range" min="0" max="100" value="35" oninput="setMusicVolume(this.value)"></div></div></header>
+<div class="layout"><aside class="side"><h3>메뉴</h3><button id="navGacha" data-page="gacha" onclick="show('gacha')">🎲 직업 뽑기</button><button id="navJobs" class="secondary" data-page="jobs" onclick="show('jobs')">🧙 직업 보관함</button><button id="navShop" class="secondary" data-page="shop" onclick="show('shop')">🛒 상점</button><button class="secondary" data-page="pets" onclick="show('pets')">🐾 펫 보관함</button><button class="secondary" data-page="regions" onclick="show('regions')">🗺️ 지역 탐험</button><button class="secondary" data-page="achievements" onclick="show('achievements')">🏆 업적</button><button class="secondary" data-page="home" onclick="home()">🏠 메인 화면</button><p class="small">뽑기 1회 100코인<br>시험판: 직업 자유 장착</p></aside>
+<main class="panel main">
+<section id="home"><div class="hero"><div class="art">🧙‍♂️⚡</div><h1>수학으로 강해져라!</h1><p class="sub">5학년 올림·버림·반올림, 합동과 대칭, 분수의 곱셈 문제!<br>정답을 맞혀 몬스터를 물리치고 레벨업하세요.</p><div class="actions"><button onclick="show('jobs')">직업 선택</button><button class="green" onclick="start()">PLAY!!</button></div></div><div class="cards"><div class="card">👊 <h3>직업 수집</h3><p class="small">코인 100개로 뽑기</p></div><div class="card">📚 <h3>5학년 수학</h3><p class="small">올림·버림·반올림 / 합동과 대칭 / 분수의 곱셈</p></div><div class="card">⬆️ <h3>레벨업</h3><p class="small">공격력 강화 또는 체력 회복</p></div><div class="card">🐾 <h3>펫 수집</h3><p class="small">펫을 모아 전투에 도움받기</p></div><div class="card">🗺️ <h3>지역 탐험</h3><p class="small">몬스터를 처치해 새로운 지역 해금</p></div><div class="card">🏆 <h3>업적 도전</h3><p class="small">목표를 달성하고 코인 보상 받기</p></div></div></section>
+<section id="battle" class="hidden"><div class="row"><h2 class="gold">⚔️ 몬스터 전투</h2><button class="secondary" onclick="home()">메인 화면</button></div><div class="xpbox"><div class="xptext"><span>⭐ 레벨 <b id="level">1</b></span><span>경험치: <b id="exp">0</b> / 다음 레벨업: <b id="need">20</b></span></div><div class="bar"><span id="xpbar"></span></div><div class="small" id="remaining"></div></div><div class="battle"><div class="monster-stage"><div class="monster" id="monsterEmoji">🟢</div><div class="fx" id="effectFx" aria-hidden="true"></div></div><h2 id="monsterName">초록 슬라임</h2><b>몬스터 HP: <span id="mhp">50</span>/<span id="mmax">50</span></b><div class="bar"><span id="mbar"></span></div></div><div class="row"><b>❤️ 체력 <span id="hp">100</span>/<span id="maxhp">100</span></b><b>⚔️ 피해량 <span id="damage">30</span></b></div><p class="small" id="passive"></p><div class="question" id="question"></div><div class="answers" id="answers"></div><div class="notice" id="notice">정답이면 공격, 오답이면 몬스터가 반격해요.</div><div class="combo" id="comboText">연속 정답 0회</div><div class="notice" id="ultimateTimer" aria-live="polite">궁극기: Lv.5부터 사용 가능</div><div class="actions"><button id="ultimateBtn" class="green" onclick="useUltimate()" disabled>궁극기 🔒 (Lv.5 해금)</button><button class="secondary" onclick="potion()">🧪 포션 (<span id="potions">0</span>)</button></div></section>
+<section id="upgrade" class="hidden"><div class="hero"><div class="art">⬆️✨</div><h2>레벨 업!</h2><p class="sub">이번 전투에서 사용할 강화 하나를 선택하세요.</p></div><div class="cards"><div class="upgrade">⚔️<h3>피해량 +10</h3><p class="small">앞으로 공격할 때 주는 피해량이 10 증가합니다.</p><button onclick="boost('damage')">공격력 강화</button></div><div class="upgrade">❤️<h3>체력 10 회복</h3><p class="small">현재 체력을 10 회복합니다.</p><button onclick="boost('heal')">체력 회복</button></div></div></section>
+<section id="gacha" class="hidden"><h2 class="gold">🎲 직업 뽑기</h2><p class="sub">100코인으로 뽑아요. 획득한 직업은 전투를 시작하기 전에 보관함에서 장착할 수 있어요.</p><div class="hero"><div class="art">🔮✨</div><h2>운명의 직업 소환</h2><button onclick="draw()">100코인으로 뽑기!</button><div class="notice" id="gnotice">행운을 빌어요!</div></div><div class="cards" id="rates"></div><p class="small">※ 요청한 확률 합계는 75%입니다. 남은 25%는 미설정 확률로, 시험판에서는 코인을 돌려주는 '미확정' 결과로 처리합니다.</p></section>
+<section id="jobs" class="hidden"><h2 class="gold">🧙 직업 보관함</h2><p class="sub">등급이 높을수록 공격력과 최대 체력이 강해져요. 시험판에서는 10개 직업을 모두 자유롭게 장착할 수 있어요.</p><div class="cards" id="jobcards"></div></section>
+<section id="shop" class="hidden"><h2 class="gold">🛒 상점</h2><div class="cards"><div class="card">🧪<h3>체력 포션</h3><p class="small">전투 중 체력 20 회복 · 50코인</p><button onclick="buyPotion()">구매하기</button><p class="small">보유: <b id="potionCount">0</b></p></div></div></section>
+<section id="pets" class="hidden"><h2 class="gold">🐾 펫 보관함</h2><p class="sub">펫은 전투를 도와주는 동료예요. 한 번에 한 마리만 데리고 갈 수 있어요.</p><div class="hero"><div class="art">🥚✨</div><button onclick="hatchPet()">🎁 무료 펫 뽑기</button><button class="green" id="restorePetBtn" onclick="restorePetHealth()">💚 펫 체력 회복</button><div class="notice" id="petNotice">펫 뽑기는 무료예요. 체력 회복은 잃은 체력에 따라 코인이 필요해요.</div><p class="small">회복 비용은 펫마다 계산해 합산해요. 잃은 체력 1~20은 1코인씩, 21~40은 2코인씩, 41~60은 3코인씩, 61~80은 4코인씩, 81~100은 5코인씩 들어요. 많이 닳았을수록 회복 비용이 커져요.</p></div><div class="cards" id="petcards"></div></section>
+<section id="regions" class="hidden"><h2 class="gold">🗺️ 모험 지역</h2><p class="sub">몬스터를 처치할수록 새로운 지역이 열려요. 해금한 지역은 계속 유지됩니다.</p><div class="cards" id="regioncards"></div></section>
+<section id="achievements" class="hidden"><h2 class="gold">🏆 모험 업적</h2><p class="sub">모험 중 달성한 기록은 저장되고, 업적마다 코인을 한 번 받을 수 있어요.</p><div class="cards" id="achievementCards"></div></section>
+<section id="result" class="hidden"><div class="hero"><div class="art">💫</div><h2>모험 종료!</h2><p class="sub">레벨, 경험치, 이번 전투의 강화 효과가 초기화됐어요.<br>코인과 획득한 직업은 유지됩니다.</p><button onclick="show('gacha')">직업 뽑기</button> <button class="secondary" onclick="home()">메인으로</button></div></section>
+</main></div><div class="footer">Math RNG RPG 1.4 · 펫 등급별 공격 / 펫 체력·회복 비용 시스템</div></div>
+<script>
+const jobs=[
+{id:'fighter',name:'수련가',tier:'일반',emoji:'👊',skill:'기본 펀치',desc:'기본 피해량 30. 2번 연속 피격되면 다음 반격 1회 무효.',rate:10,dmg:30,maxhp:100},
+{id:'guard',name:'수호자',tier:'일반',emoji:'🛡️',skill:'방패 밀치기',desc:'기본 피해량 28. 몬스터 반격 피해를 5 줄여요.',rate:10,dmg:28,maxhp:100},
+{id:'archer',name:'숲의 사수',tier:'일반',emoji:'🏹',skill:'정확한 화살',desc:'기본 피해량 27. 25% 확률로 공격 피해량 2배.',rate:10,dmg:27,maxhp:100},
+{id:'healer',name:'치유사',tier:'일반',emoji:'🌿',skill:'작은 치유',desc:'기본 피해량 25. 정답을 맞히면 체력 5 회복.',rate:10,dmg:25,maxhp:100},
+{id:'mage',name:'원소술사',tier:'희귀',emoji:'🪄',skill:'원소 폭발',desc:'기본 피해량 45. 최대 체력 115.',rate:20/3,dmg:45,maxhp:115},
+{id:'assassin',name:'그림자 자객',tier:'희귀',emoji:'🥷',skill:'그림자 베기',desc:'기본 피해량 42. 30% 확률로 피해량 2배. 최대 체력 115.',rate:20/3,dmg:42,maxhp:115},
+{id:'druid',name:'숲의 현자',tier:'희귀',emoji:'🧝',skill:'자연의 숨결',desc:'기본 피해량 40. 정답을 맞히면 체력 10 회복. 최대 체력 115.',rate:20/3,dmg:40,maxhp:115},
+{id:'paladin',name:'성기사',tier:'영웅',emoji:'🪽',skill:'성스러운 강타',desc:'기본 피해량 65. 최대 체력 140.',rate:5,dmg:65,maxhp:140},
+{id:'thunder',name:'천둥 군주',tier:'영웅',emoji:'⚡',skill:'번개 낙하',desc:'기본 피해량 60. 30% 확률로 추가 피해 35. 최대 체력 140.',rate:5,dmg:60,maxhp:140},
+{id:'pororo',name:'뽀로로',tier:'전설',emoji:'🐧',skill:'노는 게 제일 좋아',desc:'기본 피해량 85. 정답 공격 성공 시 체력 20 회복. 최대 체력 160.',rate:5,dmg:85,maxhp:160}
+];
+const pets=[
+{id:'turtle',name:'튼튼 거북이',emoji:'🐢',tier:'일반',desc:'공격 확률 15% · 추가 피해 8 · 받는 피해 1 감소',chance:15,damage:8,drain:5,effect:'guard'},
+{id:'fairy',name:'숲의 요정',emoji:'🧚',tier:'희귀',desc:'공격 확률 25% · 추가 피해 15 · 정답 시 체력 2 회복',chance:25,damage:15,drain:10,effect:'heal'},
+{id:'owl',name:'지혜 부엉이',emoji:'🦉',tier:'영웅',desc:'공격 확률 35% · 추가 피해 25 · 몬스터 처치 경험치 +3',chance:35,damage:25,drain:15,effect:'exp'},
+{id:'fox',name:'불꽃 여우',emoji:'🦊',tier:'전설',desc:'공격 확률 50% · 추가 피해 40 · 공격 발동 시 체력 5 회복',chance:50,damage:40,drain:22,effect:'damage'}
+];
+const regions=[
+{name:'초록 숲',emoji:'🌳',unlock:0,monsters:[['초록 슬라임','🟢',50],['숲 고블린','👺',70]]},
+{name:'수정 동굴',emoji:'💎',unlock:10,monsters:[['수정 박쥐','🦇',105],['바위 골렘','🗿',125]]},
+{name:'불꽃 화산',emoji:'🌋',unlock:25,monsters:[['화염 늑대','🐺',165],['용암 괴물','👹',190]]},
+{name:'구름 신전',emoji:'☁️',unlock:50,monsters:[['번개 정령','⚡',230],['하늘 수호자','🪽',260]]}
+];
+const achievements=[
+{id:'kills10',name:'첫 모험가',desc:'몬스터 10마리 처치',goal:10,reward:50,stat:'totalKills'},
+{id:'kills30',name:'숲의 정복자',desc:'몬스터 30마리 처치',goal:30,reward:100,stat:'totalKills'},
+{id:'boss1',name:'보스 사냥꾼',desc:'보스 1마리 처치',goal:1,reward:75,stat:'bossKills'},
+{id:'correct25',name:'수학 박사',desc:'수학 문제 25개 정답',goal:25,reward:75,stat:'totalCorrect'},
+{id:'pet3',name:'동물 친구들',desc:'펫 3종 모으기',goal:3,reward:100,stat:'petCount'}
+];
+let s={coins:0,owned:['fighter'],active:'fighter',potions:0,level:1,exp:0,hp:100,maxhp:100,bonus:0,hits:0,invuln:0,totalKills:0,bossKills:0,totalCorrect:0,ownedPets:[],activePet:null,petHealth:{},claimedAchievements:[]};
+let mob={},q={},upgrades=0,runActive=false,combo=0,ultimateUsed=false,questionToken=0,ultimateEndsAt=0,petRunCharged=false;
+const $=x=>document.getElementById(x),cur=()=>jobs.find(j=>j.id===s.active)||jobs[0],need=()=>20+(s.level-1)*10;
+function save(){try{localStorage.setItem('mathRngRpgV3',JSON.stringify(s))}catch(e){}}
+function load(){
+  try{
+    const v=JSON.parse(localStorage.getItem('mathRngRpgV3'));
+    if(v)s={...s,...v};
+  }catch(e){}
+  // 이전 버전 저장 데이터도 현재 장착 직업의 등급별 체력으로 맞춘다.
+  s.totalKills=Math.max(0,Number(s.totalKills)||0);s.bossKills=Math.max(0,Number(s.bossKills)||0);s.totalCorrect=Math.max(0,Number(s.totalCorrect)||0);s.ownedPets=Array.isArray(s.ownedPets)?s.ownedPets.filter(id=>pets.some(p=>p.id===id)):[];s.petHealth=(s.petHealth&&typeof s.petHealth==='object')?s.petHealth:{};pets.forEach(p=>{const n=Number(s.petHealth[p.id]);s.petHealth[p.id]=Number.isFinite(n)?Math.max(0,Math.min(100,n)):100});s.claimedAchievements=Array.isArray(s.claimedAchievements)?s.claimedAchievements:[];if(!s.ownedPets.includes(s.activePet))s.activePet=null;
+  const equipped=jobs.find(j=>j.id===s.active)||jobs[0];
+  const previousMax=s.maxhp||100;
+  s.maxhp=equipped.maxhp;
+  if(previousMax!==s.maxhp)s.hp=Math.min(s.maxhp,Math.max(1,(s.hp||100)+(s.maxhp-previousMax)));
+}
+function setActiveMenu(page){
+  document.querySelectorAll('.side button[data-page]').forEach(button=>{
+    const active=button.dataset.page===page;
+    button.classList.toggle('active-menu',active);
+    if(active)button.setAttribute('aria-current','page');
+    else button.removeAttribute('aria-current');
+  });
+}
+function show(id){
+  if(['home','gacha','jobs','shop','pets','regions','achievements'].includes(id))setActiveMenu(id);
+  if(runActive&&['jobs','gacha','shop','pets','regions','achievements'].includes(id)){
+    $('notice').textContent='전투가 끝날 때까지 직업 변경과 메뉴 이용이 잠겨 있어요. 메인 화면으로 나가면 전투가 종료돼요.';
+    return;
+  }
+  ['home','battle','upgrade','gacha','jobs','shop','pets','regions','achievements','result'].forEach(x=>$(x).classList.add('hidden'));
+  $(id).classList.remove('hidden');render();syncMusic(id);
+}
+function ultimateActive(){return ultimateEndsAt>Date.now()}
+function updateUltimateTimer(){
+  const el=$('ultimateTimer');if(!el)return;
+  const left=Math.max(0,ultimateEndsAt-Date.now());
+  if(left>0){el.textContent=`✨ 궁극기 강화 중! 남은 시간 ${(left/1000).toFixed(1)}초 · 공격력 2배`;el.classList.add('ultimate-active')}
+  else{ultimateEndsAt=0;el.textContent=ultimateUsed?'궁극기 효과 종료':'궁극기: Lv.5부터 사용 가능';el.classList.remove('ultimate-active')}
+}
+setInterval(updateUltimateTimer,100);
+function render(){
+  $('navGacha').disabled=runActive;$('navJobs').disabled=runActive;$('navShop').disabled=runActive;document.querySelectorAll('.side button').forEach(b=>{if(b.id!=='navGacha'&&b.id!=='navJobs'&&b.id!=='navShop')b.disabled=runActive&&b.textContent!=='🏠 메인 화면'});
+  $('ultimateBtn').disabled=!(runActive&&s.level>=5&&!ultimateUsed);
+  $('ultimateBtn').textContent=s.level<5?'궁극기 🔒 (Lv.5 해금)':(ultimateUsed?'궁극기 사용 완료':'✨ 궁극기 사용!');
+  $('comboText').textContent=`연속 정답 ${combo}회 · 연속 보너스 +${Math.min(15,Math.max(0,combo-1)*3)}`;
+  $('coins').textContent=s.coins;$('jobCount').textContent=s.owned.length;$('potionCount').textContent=s.potions;$('potions').textContent=s.potions;$('level').textContent=s.level;$('exp').textContent=s.exp;$('need').textContent=need();$('hp').textContent=s.hp;$('maxhp').textContent=s.maxhp;$('damage').textContent=cur().dmg+s.bonus;$('xpbar').style.width=(s.exp/need()*100)+'%';$('remaining').textContent=`다음 레벨까지 경험치 ${need()-s.exp} 더 필요`;$('passive').textContent=cur().skill+' — '+cur().desc+(s.activePet?` | 동료: ${pets.find(p=>p.id===s.activePet)?.name||'펫'} (체력 ${s.petHealth[s.activePet]??100}/100)`:' | 동료 펫 없음');if(mob.hp!==undefined){$('monsterEmoji').textContent=mob.emoji;$('monsterName').textContent=mob.name;$('mhp').textContent=mob.hp;$('mmax').textContent=mob.max;$('mbar').style.width=(mob.hp/mob.max*100)+'%'}if(!$('jobs').classList.contains('hidden'))renderJobs();if(!$('gacha').classList.contains('hidden'))renderRates();if(!$('pets').classList.contains('hidden'))renderPets();if(!$('regions').classList.contains('hidden'))renderRegions();if(!$('achievements').classList.contains('hidden'))renderAchievements()}
+function home(){
+  if(runActive)finishPetRun();
+  ultimateEndsAt=0;runActive=false;combo=0;ultimateUsed=false;s.level=1;s.exp=0;s.hp=s.maxhp;s.bonus=0;s.hits=0;s.invuln=0;save();show('home')}
+function start(){
+  ultimateEndsAt=0;runActive=true;petRunCharged=false;combo=0;ultimateUsed=false;s.level=1;s.exp=0;s.hp=s.maxhp;s.bonus=0;s.hits=0;s.invuln=0;spawn();show('battle');question();save()}
+function currentRegion(){let r=regions[0];for(const x of regions){if(s.totalKills>=x.unlock)r=x}return r}
+function spawn(){
+  const regularKills=s.totalKills-s.bossKills;
+  const bossReady=regularKills>0&&regularKills%5===0&&s.bossKills<Math.floor(regularKills/5);
+  if(bossReady){const r=currentRegion();mob={name:r.name+'의 수호 보스',emoji:'🐉',hp:260+regions.indexOf(r)*90,max:260+regions.indexOf(r)*90,isBoss:true};setMusicMode('battle');if($('notice'))$('notice').textContent='⚠️ 강력한 보스가 나타났어요! 수학 문제를 풀어 도전하세요!';return;}
+  const r=currentRegion(),m=r.monsters[rand(0,r.monsters.length-1)];mob={name:m[0],emoji:m[1],hp:m[2],max:m[2],isBoss:false};setMusicMode('battle');
+}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function gcd(a,b){return b?gcd(b,a%b):a}function lcm(a,b){return a*b/gcd(a,b)}
+function question(){
+  const thisQuestionToken=++questionToken;
+  const mode=rand(0,2);
+  const shuffle=a=>[...a].sort(()=>Math.random()-.5);
+  const gcd2=(a,b)=>b?gcd2(b,a%b):Math.abs(a);
+  const f=(n,d)=>{const g=gcd2(n,d)||1;n/=g;d/=g;return d===1?String(n):`${n}/${d}`};
+  let z;
+  if(mode===0){
+    const unit=[10,100,1000][rand(0,2)];
+    const n=rand(2,9999);
+    const down=Math.floor(n/unit)*unit, up=down+unit;
+    const type=rand(0,2);
+    let ans,wrong,label;
+    if(type===0){ans=up;wrong=[down,up+unit,Math.max(0,down-unit)];label='올림'}
+    else if(type===1){ans=down;wrong=[up,down+unit,Math.max(0,down-unit)];label='버림'}
+    else{ans=(n-down<unit/2)?down:up;wrong=[ans===down?up:down,ans+unit,Math.max(0,ans-unit)];label='반올림'}
+    z={q:`수 ${n}을 ${unit}의 자리까지 ${label}하면 얼마일까요?`,a:String(ans),o:[String(ans),...wrong.map(String)]};
+  }else if(mode===1){
+    const type=rand(0,3);
+    if(type===0)z={q:'두 도형이 합동이라는 것은 어떤 뜻일까요?',a:'모양과 크기가 서로 같습니다',o:['모양과 크기가 서로 같습니다','모양만 같습니다','넓이만 같습니다','둘레만 같습니다']};
+    if(type===1)z={q:'정사각형의 대칭축은 모두 몇 개일까요?',a:'4개',o:['1개','2개','4개','8개']};
+    if(type===2)z={q:'선대칭도형을 대칭축을 따라 접으면 양쪽 모양은 어떻게 될까요?',a:'완전히 겹칩니다',o:['완전히 겹칩니다','일부만 겹칩니다','크기가 달라집니다','서로 겹치지 않습니다']};
+    if(type===3)z={q:'점대칭도형은 대칭의 중심을 기준으로 몇 도 돌리면 처음 모양과 겹칠까요?',a:'180도',o:['90도','180도','270도','360도']};
+  }else{
+    const type=rand(0,2);
+    let n,d,a,b,c,e,ans;
+    if(type===0){
+      n=rand(1,8);d=rand(2,9);a=rand(1,8);b=rand(2,9);
+      ans=f(n*a,d*b);
+      z={q:`계산하세요.  ${n}/${d} × ${a}/${b}`,a:ans,o:[]};
+    }else if(type===1){
+      n=rand(1,8);d=rand(2,9);a=rand(2,9);
+      ans=f(n*a,d);
+      z={q:`계산하세요.  ${n}/${d} × ${a}`,a:ans,o:[]};
+    }else{
+      a=rand(1,3);n=rand(1,5);d=rand(2,8);e=rand(2,8);
+      ans=f((a*d+n)*e,d*d); // overwritten below with mixed number × fraction
+      ans=f((a*d+n)*e,d*e);
+      const den=rand(2,8);
+      const numerator=rand(1,den-1);
+      const mult=rand(1,8), multDen=rand(2,8);
+      ans=f((a*d+n)*mult, d*multDen);
+      z={q:`계산하세요.  ${a} ${n}/${d} × ${mult}/${multDen}`,a:ans,o:[]};
+    }
+    const parts=ans.includes('/')?ans.split('/').map(Number):[Number(ans),1];
+    const candidates=new Set();
+    for(const k of [-2,-1,1,2,3,4]){const v=f(parts[0]+k,parts[1]);if(v!==ans)candidates.add(v)}
+    for(const k of [2,3,4]){const v=f(parts[0],parts[1]*k);if(v!==ans)candidates.add(v)}
+    z.o=[ans,...candidates].slice(0,4);
+  }
+  z.o=shuffle(z.o);
+  while(z.o.length<4)z.o.push(String(rand(2,99)));
+  $('question').textContent=z.q;
+  $('answers').innerHTML='';
+  z.o.forEach(v=>{
+    const b=document.createElement('button');
+    b.textContent=v;
+    b.onclick=()=>answer(v,thisQuestionToken);
+    $('answers').appendChild(b);
+  });
+  q=z;render();
+}
+const jobVisuals={
+ fighter:{fx:'💥👊',ult:'초강력 연속 펀치',ultFx:'👊💥✨',mult:3.0},
+ guard:{fx:'🛡️💫',ult:'철벽 충격파',ultFx:'🛡️🌟💥',mult:2.7},
+ archer:{fx:'🏹✨',ult:'별빛 화살비',ultFx:'🌠✨🏹',mult:2.9},
+ healer:{fx:'🌿💚',ult:'생명의 빛',ultFx:'🌿💚✨',mult:2.5,heal:25},
+ mage:{fx:'🔮💥',ult:'대원소 폭발',ultFx:'🌌🔥✨',mult:3.2},
+ assassin:{fx:'🌑✨',ult:'월광 그림자 베기',ultFx:'🌑🌙💫',mult:3.1},
+ druid:{fx:'🍃🌟',ult:'대자연의 축복',ultFx:'🌳🍃💚',mult:2.7,heal:30},
+ paladin:{fx:'☀️✨',ult:'심판의 광휘',ultFx:'☀️🌟💥',mult:3.3,heal:15},
+ thunder:{fx:'⚡💥',ult:'천둥의 심판',ultFx:'🌩️⚡✨',mult:3.2},
+ pororo:{fx:'❄️🎉',ult:'슈퍼 뽀로로 타임',ultFx:'🐧❄️🌈',mult:3.5,heal:35}
+};
+function playEffect(id,isUltimate=false){
+  const el=$('effectFx'),v=jobVisuals[id]||jobVisuals.fighter;
+  const monster=$('monsterEmoji');monster.classList.remove('hit');void monster.offsetWidth;monster.classList.add('hit');
+  el.textContent=isUltimate?v.ultFx:v.fx;
+  el.className='fx'+(isUltimate?' ultimate':'');
+  void el.offsetWidth;
+  el.classList.add('play');
+}
+function checkAchievements(){
+  let changed=false;
+  for(const a of achievements){
+    const value=a.stat==='petCount'?s.ownedPets.length:(s[a.stat]||0);
+    if(value>=a.goal&&!s.claimedAchievements.includes(a.id)){
+      s.claimedAchievements.push(a.id);s.coins+=a.reward;changed=true;
+    }
+  }
+  return changed;
+}
+function afterMonsterDefeated(){
+  const wasBoss=!!mob.isBoss;
+  s.totalKills++;
+  let c=rand(18,32),xp=rand(10,16);
+  if(wasBoss){c=100;xp=40;s.bossKills++;}
+  if(s.activePet==='owl'&&(s.petHealth.owl??100)>0)xp+=3;
+  s.coins+=c;s.exp+=xp;
+  const region=currentRegion();
+  $('notice').textContent=wasBoss?`보스 처치 성공! 코인 ${c}, 경험치 ${xp} 획득!`:`몬스터 처치! 코인 ${c}, 경험치 ${xp} 획득!`;
+  if(s.totalKills===10||s.totalKills===25||s.totalKills===50)$('notice').textContent+=` 🗺️ ${region.name} 지역이 열렸어요!`;
+  spawn();
+  checkAchievements();
+  if(s.exp>=need()){
+    s.exp-=need();s.level++;
+    save();show('upgrade');return true;
+  }
+  save();
+  return false;
+}
+function useUltimate(){
+  if(!runActive||s.level<5||ultimateUsed||mob.hp<=0)return;
+  ultimateUsed=true;
+  ultimateEndsAt=Date.now()+10000;
+  const visual=jobVisuals[s.active]||jobVisuals.fighter;
+  playEffect(s.active,true);
+  $('notice').textContent=`✨ ${visual.ult}! 10초 동안 공격력이 2배가 됩니다!`;
+  save();render();updateUltimateTimer();question();
+}
+function answer(v,token){
+  // 이미 다음 문제로 넘어간 뒤의 중복 터치나 오래된 버튼 입력은 무시한다.
+  if(token!==questionToken||!runActive||$('battle').classList.contains('hidden')||mob.hp<=0)return;
+  $('answers').querySelectorAll('button').forEach(b=>b.disabled=true);
+  if(String(v)===String(q.a)){
+    const job=cur();
+    combo++;s.totalCorrect++;
+    let d=job.dmg+s.bonus+Math.min(15,Math.max(0,combo-1)*3);
+    if(s.active==='archer'&&Math.random()<.25)d*=2;
+    if(s.active==='assassin'&&Math.random()<.30)d*=2;
+    if(s.active==='thunder'&&Math.random()<.30)d+=35;
+    if(ultimateActive())d*=2;
+    mob.hp=Math.max(0,mob.hp-d);
+    let petHit=0;
+    const companion=pets.find(p=>p.id===s.activePet);
+    if(companion && (s.petHealth[companion.id]??100)>0 && mob.hp>0 && Math.random()<companion.chance/100){
+      petHit=Math.min(mob.hp,companion.damage);
+      mob.hp=Math.max(0,mob.hp-petHit);
+      if(companion.id==='fox')s.hp=Math.min(s.maxhp,s.hp+5);
+    }
+    if(s.active==='healer')s.hp=Math.min(s.maxhp,s.hp+5);
+    if(s.active==='druid')s.hp=Math.min(s.maxhp,s.hp+10);
+    if(s.active==='pororo')s.hp=Math.min(s.maxhp,s.hp+20);
+    if(s.activePet==='fairy'&&(s.petHealth.fairy??100)>0)s.hp=Math.min(s.maxhp,s.hp+2);
+    playEffect(s.active,false);
+    $('notice').textContent=`정답! ${job.skill} 발동, ${d} 피해!${petHit?` 🐾 ${companion.emoji} ${companion.name}도 공격해 ${petHit} 추가 피해!`:''}${combo>1?' 연속 정답 보너스 포함!':''}`;
+    if(mob.hp<=0){
+      if(afterMonsterDefeated())return;
+    }
+  }else{
+    combo=0;
+    if(s.invuln>0){s.invuln=0;s.hits=0;$('notice').textContent='무적! 이번 반격은 피해를 받지 않았어요.'}
+    else{
+      const hurt=Math.max(1,10-(s.active==='guard'?5:0)-(s.activePet==='turtle'&&(s.petHealth.turtle??100)>0?1:0));
+      s.hp-=hurt;s.hits++;
+      $('notice').textContent=`오답! 체력 ${hurt} 감소!`;
+      if(s.active==='fighter'&&s.hits>=2){s.invuln=1;s.hits=0;$('notice').textContent+=' 수련가 효과: 다음 1턴 무적!'}
+      if(s.hp<=0){die();return}
+    }
+  }
+  save();question();
+}
+function boost(t){if(t==='damage')s.bonus+=10;else s.hp=Math.min(s.maxhp,s.hp+10);save();show('battle');$('notice').textContent=t==='damage'?'피해량이 10 증가했어요!':'체력을 10 회복했어요!';question()}
+function die(){
+  if(runActive)finishPetRun();
+  ultimateEndsAt=0;runActive=false;combo=0;ultimateUsed=false;s.level=1;s.exp=0;s.hp=s.maxhp;s.bonus=0;s.hits=0;s.invuln=0;save();show('result')}
+function potion(){if(!s.potions){$('notice').textContent='포션이 없어요. 상점에서 구매하세요.';return}if(s.hp===s.maxhp){$('notice').textContent='체력이 가득 찼어요!';return}s.potions--;s.hp=Math.min(s.maxhp,s.hp+20);save();render();$('notice').textContent='포션으로 체력 20 회복!'}
+function draw(){
+  if(s.coins<100){$('gnotice').textContent='코인이 부족해요!';return}
+  s.coins-=100;
+  let r=Math.random()*100,t=r<40?'일반':r<60?'희귀':r<70?'영웅':r<75?'전설':null;
+  if(!t){s.coins+=100;$('gnotice').textContent='미확정 등급 결과! 코인 100개를 돌려드렸어요.';save();render();return}
+  let list=jobs.filter(j=>j.tier===t),j=list[rand(0,list.length-1)];
+  if(s.owned.includes(j.id)){
+    s.coins+=50;
+    $('gnotice').textContent=`중복 직업! ${j.emoji} ${j.name}이(가) 이미 있어 50코인을 돌려받았어요.`;
+  }else{
+    s.owned.push(j.id);
+    $('gnotice').textContent=`새 직업 획득! ${j.emoji} ${j.tier} ${j.name}을(를) 얻었어요!`;
+  }
+  save();render();
+}
+function renderRates(){let tiers=[['일반',40],['희귀',20],['영웅',10],['전설',5]];$('rates').innerHTML=tiers.map(([t,p])=>`<div class="card"><span class="tag">${t}</span><h3>${p}%</h3><p class="small">${jobs.filter(j=>j.tier===t).map(j=>j.emoji+' '+j.name).join(' · ')}</p><p class="small">직업별 확률 ${(p/jobs.filter(j=>j.tier===t).length).toFixed(2)}%</p></div>`).join('')}
+function renderJobs(){
+  // 시험판에서는 뽑지 않은 직업도 모두 미리보기 및 장착 가능
+  $('jobcards').innerHTML=jobs.map(j=>{
+    const isOwned=s.owned.includes(j.id);
+    return `<div class="card ${s.active===j.id?'selected':''}">
+      <div class="emoji">${j.emoji}</div>
+      <span class="tag">${j.tier}${isOwned?' · 보유':' · 시험판 체험'}</span>
+      <h3>${j.name}</h3><b>${j.skill}</b>
+      <p class="small">${j.desc}</p>
+      <p class="small">공격력 ${j.dmg} · 최대 체력 ${j.maxhp}</p>
+      <button ${s.active===j.id?'disabled':''} onclick="equip('${j.id}')">${s.active===j.id?'장착 중':'이 직업 장착하기'}</button>
+    </div>`;
+  }).join('');
+}
+function equip(id){
+  if(runActive){$('notice').textContent='전투 중에는 직업을 바꿀 수 없어요!';return;}
+  const chosen=jobs.find(j=>j.id===id);
+  if(!chosen)return;
+  const oldMax=s.maxhp||100;
+  s.active=id;
+  // 시험판에서는 선택한 직업을 보유 직업에도 추가해 영구 저장
+  if(!s.owned.includes(id))s.owned.push(id);
+  s.maxhp=chosen.maxhp;
+  // 최대 체력이 늘어난 만큼 현재 체력도 함께 늘려 장착 직후 불리하지 않게 한다.
+  s.hp=Math.min(s.maxhp,Math.max(1,s.hp+(s.maxhp-oldMax)));
+  save();
+  renderJobs();
+  render();
+  $('jobcards').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function buyPotion(){if(s.coins<50){alert('코인이 부족해요!');return}s.coins-=50;s.potions++;save();render();alert('포션을 구매했어요!')}
+function finishPetRun(){
+  if(petRunCharged)return;
+  petRunCharged=true;
+  const p=pets.find(x=>x.id===s.activePet);
+  if(p){
+    const before=s.petHealth[p.id]??100;
+    s.petHealth[p.id]=Math.max(0,before-p.drain);
+    const after=s.petHealth[p.id];
+    const msg=after===0?'체력이 0이 되어 잠시 쉬어야 해요. 펫 보관함에서 무료 회복을 해주세요.':`체력 ${p.drain} 감소 (${before} → ${after})`;
+    if($('petNotice'))$('petNotice').textContent=`${p.emoji} ${p.name}: ${msg}`;
+  }
+  save();
+}
+function hatchPet(){
+  if(runActive)return;
+  const available=pets.filter(p=>!s.ownedPets.includes(p.id));
+  if(!available.length){$('petNotice').textContent='펫을 모두 모았어요! 시험판이라 모든 펫을 무료로 얻을 수 있어요.';return;}
+  const pet=available[rand(0,available.length-1)];
+  s.ownedPets.push(pet.id);s.petHealth[pet.id]=100;
+  $('petNotice').textContent=`무료 획득! ${pet.emoji} ${pet.tier} ${pet.name}을(를) 얻었어요!`;
+  checkAchievements();save();render();renderPets();
+}
+// 잃은 체력이 많을수록 1HP당 회복 단가가 단계적으로 올라갑니다.
+function petRecoveryCost(missing){
+  let cost=0;
+  for(let hp=1;hp<=Math.max(0,Math.min(100,missing));hp++)cost+=Math.ceil(hp/20);
+  return cost;
+}
+function totalPetRecoveryCost(){
+  return s.ownedPets.reduce((sum,id)=>sum+petRecoveryCost(100-(s.petHealth[id]??100)),0);
+}
+function updatePetRecoveryButton(){
+  const btn=$('restorePetBtn');
+  if(!btn)return;
+  const cost=totalPetRecoveryCost();
+  const hasPets=s.ownedPets.length>0;
+  btn.textContent=!hasPets?'💚 펫을 먼저 획득하세요':cost===0?'💚 펫 체력 가득 참':'💚 전체 펫 회복 ('+cost+'코인)';
+  btn.disabled=runActive||!hasPets||cost===0;
+  btn.title=cost>0?`현재 보유 코인 ${s.coins} · 필요한 코인 ${cost}`:'회복할 체력이 없습니다.';
+}
+function restorePetHealth(){
+  if(runActive)return;
+  if(!s.ownedPets.length){$('petNotice').textContent='먼저 무료 펫 뽑기로 펫을 얻어 주세요.';return;}
+  const cost=totalPetRecoveryCost();
+  if(cost===0){$('petNotice').textContent='모든 펫의 체력이 이미 가득 차 있어요!';return;}
+  if(s.coins<cost){$('petNotice').textContent=`코인이 부족해요! 전체 회복에는 ${cost}코인이 필요하고, 현재 ${s.coins}코인이 있어요.`;return;}
+  s.coins-=cost;
+  s.ownedPets.forEach(id=>s.petHealth[id]=100);
+  $('petNotice').textContent=`전체 펫의 체력을 회복했어요! ${cost}코인을 사용했어요.`;
+  save();renderPets();render();
+}
+function renderPets(){
+  updatePetRecoveryButton();
+  $('petcards').innerHTML=pets.map(p=>{
+    const owned=s.ownedPets.includes(p.id),hp=s.petHealth[p.id]??100,active=s.activePet===p.id;
+    return `<div class="card ${active?'selected':''}"><div class="emoji">${p.emoji}</div><span class="pet-tier">${p.tier}</span><h3>${p.name}</h3><p class="small">${p.desc}</p><p class="pet-hp">${owned?`펫 체력 ${hp}/100`:'미보유'}</p><div class="bar"><span style="width:${owned?hp:0}%"></span></div><p class="small">모험 종료 시 체력 -${p.drain}</p><button ${!owned||active||hp<=0?'disabled':''} onclick="equipPet('${p.id}')">${active?'함께 모험 중':hp<=0?'체력 회복 필요':owned?'함께하기':'미보유'}</button></div>`;
+  }).join('');
+  $('petcards').insertAdjacentHTML('beforeend',`<div class="card ${s.activePet===null?'selected':''}"><div class="emoji">🚶</div><h3>펫 없이 모험</h3><p class="small">펫 효과를 사용하지 않아요.</p><button ${s.activePet===null?'disabled':''} onclick="equipPet(null)">펫 쉬게 하기</button></div>`);
+}
+function equipPet(id){
+  if(runActive)return;
+  if(id!==null&&!s.ownedPets.includes(id))return;
+  if(id!==null&&(s.petHealth[id]??100)<=0){$('petNotice').textContent='펫 체력이 0이에요. 무료 회복을 먼저 해주세요.';return;}
+  s.activePet=id;save();renderPets();render();
+}
+function renderRegions(){
+  $('regioncards').innerHTML=regions.map(r=>{const unlocked=s.totalKills>=r.unlock;return `<div class="card ${currentRegion().name===r.name?'selected':''}"><div class="emoji">${r.emoji}</div><h3>${r.name}</h3><p class="small">${unlocked?'해금 완료':'몬스터 '+r.unlock+'마리 처치 시 해금'}</p><p class="small">${r.monsters.map(m=>m[1]+' '+m[0]).join(' · ')}</p></div>`}).join('');
+}
+function renderAchievements(){
+  $('achievementCards').innerHTML=achievements.map(a=>{const value=a.stat==='petCount'?s.ownedPets.length:(s[a.stat]||0),done=s.claimedAchievements.includes(a.id),ready=value>=a.goal;return `<div class="card ${done?'selected':''}"><h3>${done?'✅':ready?'🎁':'🏅'} ${a.name}</h3><p class="small">${a.desc}</p><div class="bar"><span style="width:${Math.min(100,value/a.goal*100)}%"></span></div><p class="small">진행도 ${Math.min(value,a.goal)} / ${a.goal} · 보상 ${a.reward}코인</p><b class="small">${done?'보상 수령 완료':ready?'목표 달성! 보상 자동 지급':'도전 중'}</b></div>`}).join('');
+}
+// 오리지널 절차 생성 배경음악: 외부 음원이나 저작권 음악 파일을 사용하지 않아요.
+let musicContext=null,musicMaster=null,musicTimer=null,musicStep=0,musicEnabled=false,musicMode='home',musicVolume=0.35;
+const musicTracks={
+ home:[{n:523.25,d:0},{n:659.25,d:0},{n:783.99,d:0},{n:659.25,d:0},{n:587.33,d:0},{n:698.46,d:0},{n:880,d:0},{n:698.46,d:0}],
+ battle:[{n:392,d:0},{n:493.88,d:0},{n:587.33,d:0},{n:493.88,d:0},{n:349.23,d:0},{n:440,d:0},{n:523.25,d:0},{n:440,d:0}],
+ boss:[{n:196,d:0},{n:233.08,d:0},{n:293.66,d:0},{n:233.08,d:0},{n:174.61,d:0},{n:220,d:0},{n:261.63,d:0},{n:220,d:0}]
+};
+function ensureMusic(){
+  if(musicContext)return;
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  musicContext=new AC();musicMaster=musicContext.createGain();musicMaster.gain.value=musicVolume;musicMaster.connect(musicContext.destination);
+}
+function playMusicNote(freq,duration=.24,type='triangle',gain=.045){
+  if(!musicContext||!musicMaster)return;
+  const now=musicContext.currentTime,osc=musicContext.createOscillator(),amp=musicContext.createGain();
+  osc.type=type;osc.frequency.setValueAtTime(freq,now);
+  amp.gain.setValueAtTime(.0001,now);amp.gain.exponentialRampToValueAtTime(gain,now+.025);amp.gain.exponentialRampToValueAtTime(.0001,now+duration);
+  osc.connect(amp);amp.connect(musicMaster);osc.start(now);osc.stop(now+duration+.03);
+}
+function musicTick(){
+  if(!musicEnabled||!musicContext)return;
+  const track=musicTracks[musicMode]||musicTracks.home,note=track[musicStep%track.length];
+  playMusicNote(note.n,.25,musicMode==='boss'?'sawtooth':'triangle',musicMode==='boss'?.035:.04);
+  if(musicStep%4===0){const bass=musicMode==='boss'?[98,116.54,87.31,103.83][Math.floor(musicStep/4)%4]:musicMode==='battle'?[130.81,110,146.83,116.54][Math.floor(musicStep/4)%4]:[130.81,164.81,146.83,174.61][Math.floor(musicStep/4)%4];playMusicNote(bass,.48,'sine',.055)}
+  musicStep++;
+}
+function setMusicMode(mode){
+  const next=mode==='battle'?(mob&&mob.isBoss?'boss':'battle'):mode==='upgrade'?(mob&&mob.isBoss?'boss':'battle'):mode==='result'?'home':mode==='home'?'home':(mob&&mob.isBoss?'boss':'battle');
+  if(next===musicMode)return;musicMode=next;musicStep=0;
+}
+function syncMusic(page){setMusicMode(page);}
+async function toggleMusic(){
+  ensureMusic();if(!musicContext){$('musicToggle').textContent='음악 지원 안 됨';return;}
+  if(musicContext.state==='suspended')await musicContext.resume();
+  musicEnabled=!musicEnabled;
+  if(musicEnabled){musicMaster.gain.setTargetAtTime(musicVolume,musicContext.currentTime,.04);musicStep=0;musicTick();if(musicTimer)clearInterval(musicTimer);musicTimer=setInterval(musicTick,320);$('musicToggle').textContent='🔊 음악 끄기';}
+  else{if(musicTimer){clearInterval(musicTimer);musicTimer=null;}musicMaster.gain.setTargetAtTime(0,musicContext.currentTime,.04);$('musicToggle').textContent='🎵 음악 켜기';}
+}
+function setMusicVolume(value){musicVolume=Math.max(0,Math.min(1,Number(value)/100));if(musicMaster&&musicEnabled)musicMaster.gain.setTargetAtTime(musicVolume,musicContext.currentTime,.04);}
+load();setActiveMenu('home');render();renderRates();
+</script></body></html>
